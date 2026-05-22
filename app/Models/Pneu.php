@@ -10,9 +10,27 @@ class Pneu extends Model
 protected $guarded = ['id','updated_at','	created_at'];
 
 
-protected function vehicule(){
+public function vehicule(){
 
 return $this->belongsTo(Vehicule::class);
 
 }
+public function commandes(){
+return $this->belongsToMany(Commande::class, 'ligne_commandes', 'pneu_id', 'commande_id')
+                ->withPivot('quantite', 'prix_unitaire')
+                ->withTimestamps();
+}
+
+public function ligne_commandes(){
+return $this->hasMany(Ligne_commande::class);
+
+
+}
+
+//les méthodes métier
+
+
+
+
+
 }

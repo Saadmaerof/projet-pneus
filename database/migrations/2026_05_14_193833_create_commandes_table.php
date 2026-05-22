@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('clients', function (Blueprint $table) {
+        Schema::create('commandes', function (Blueprint $table) {
             $table->id();
-            $table->string('telephone');
-            $table->string('adresse');
-            $table->string('statut')->default('actif');
-            $table->foreignId('user_id')
-                  ->constrained('users')
+          $table->foreignId('client_id')
+                  ->constrained('clients')
                   ->onDelete('cascade');
+          $table->datetime('date_commande')->useCurrent();
+            $table->string('statut')->default('en attente'); // en attente, confirmée, livrée, annulée
+            $table->float('montant_total')->default(0);
             $table->timestamps();
         });
     }
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('clients');
+        Schema::dropIfExists('commandes');
     }
 };

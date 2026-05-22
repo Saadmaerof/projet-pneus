@@ -7,21 +7,29 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable ;//,hasapitokens;
+    use HasFactory, Notifiable,hasapitokens;
 
     /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
      */
-    protected $fillable = [
-        'name',
+
+    protected $table = 'users';
+
+     protected $fillable = [
+        'nom',
+        'prenom',
         'email',
         'password',
+        'role',
+        
     ];
 
     /**
@@ -29,10 +37,10 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
-    protected $hidden = [
-        'password',
+     protected $hidden = [
+      // 'mot_de_passe',
         'remember_token',
-    ];
+    ]; 
 
     /**
      * Get the attributes that should be cast.
@@ -43,7 +51,25 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+         //  'mot_de_passe' => 'hashed',
         ];
     }
+
+    public function client()
+    {
+        return $this->hasOne(Client::class);
+    }
+
+    public function technicien()
+    {
+        return $this->hasOne(Technicien::class);
+    }
+
+    public function admin()
+    {
+        return $this->hasOne(Admin::class);
+    }
+
+
+
 }

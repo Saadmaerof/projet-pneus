@@ -11,7 +11,8 @@ use Laravel\Prompts\Title;
 use Illuminate\Support\Facades\Storage;
 class VehiculeController extends Controller
 {
-    //
+    
+//creer neveau vehicule
      public function store(StoreVehiculeRequest $request)
 {
 
@@ -25,6 +26,7 @@ $imagePath = $request->file('image')->store('categorie_vehicules', 'public');
     return response()->json(['success'=>'true', 'message'=>'Catégorie créée avec succès.']);
 }
 
+//afficher tous les vehicules
 public function afficher(){
 
 $categories = Vehicule::all();
@@ -33,6 +35,7 @@ return response()->json($categories);
 
 }
 
+//afficher un seul vehicule
 public function affiche($id){
 
 $categorie = Vehicule::find($id);
@@ -50,6 +53,7 @@ return response()->json($categorie);
 
 }
 
+// supprimer un vehicule
 public function delete($id)
 {
     $vehicule = Vehicule::find($id);
@@ -74,7 +78,7 @@ public function delete($id)
     ]);
 }
 
-
+//modifier un vehicule
 public function update(UpdateVehiculeRequest $request, $id)
 {
    

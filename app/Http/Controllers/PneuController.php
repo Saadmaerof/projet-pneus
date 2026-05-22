@@ -13,19 +13,7 @@ class PneuController extends Controller
 public function store(Request $request)
 {
     $validated = $request->validate([
-        'marque'         => 'required|string|max:255',
-        'modele'         => 'required|string|max:255',
-        'largeur'        => 'required|integer',
-        'hauteur'        => 'required|integer',
-        'diametre_pouces'=> 'required|integer',
-        'saison'         => 'required|string|max:255',
-        'indice_charge'  => 'required|integer',
-        'indice_vitesse' => 'required|string|max:10',
-        'prix'           => 'required|numeric|min:0',
-        'description'    => 'required|string',
-        'quantite'       => 'required|integer|min:0',
-        'image'          => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-        'vehicule_id'    => 'required|exists:vehicules,id',
+       
     ]);
 
     // Gestion de l'image
@@ -41,10 +29,12 @@ public function store(Request $request)
     ], 201);
 }
 
-// obtenir par vehicule
-public function getByVehicule($vehicule_id)
+
+//obtenir les pneus d'un vehicule
+public function getByVehicule($id)
 {
-    $vehicule = Vehicule::findOrFail($vehicule_id);
+   
+    $vehicule = Vehicule::findOrFail($id);
 
     $pneus =$vehicule->pneus;
 
@@ -53,7 +43,9 @@ public function getByVehicule($vehicule_id)
         'data'    => $pneus,
     ], 200);
 }
-// trier par des parameters
+
+
+//trier les pneus par vehicule, saison, marque, dimension (largeur/hauteur/diametre)
 public function getBytrier(GetbyTrierPneuRequest $request)
 {
      
