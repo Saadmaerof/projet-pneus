@@ -1,4 +1,4 @@
-*
+git rm --cached .env*
 !private/
 !public/
 !.gitignore
