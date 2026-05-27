@@ -44,7 +44,7 @@ class Technicien extends Model
         return $this->belongsToMany(Service::class, 'service__technicien', 'technicien_id', 'service_id')
                     ->withTimestamps();
     }
-    
+
 
 
 
