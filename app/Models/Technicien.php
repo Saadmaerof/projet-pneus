@@ -29,5 +29,25 @@ class Technicien extends Model
         return $this->hasMany(LigneRendezvous::class);
     }
 
+    public function servicesbyrendezvous()
+    {
+        return $this->hasMany(Service::class, 'ligne_rendezvous')
+            ->withPivot('rendezvous_id')
+            ->withTimestamps();
+    }
+    public function service__technicien()
+    {
+        return $this->hasMany(Service_Technicien::class);
+    }
+    public function services()
+    {
+        return $this->belongsToMany(Service::class, 'service__technicien', 'technicien_id', 'service_id')
+                    ->withTimestamps();
+    }
+    
+
+
+
+
 }
 
