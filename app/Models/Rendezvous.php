@@ -6,9 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Rendezvous extends Model
 {
-    protected $table = 'rendez_vous';
+
+
+    protected $table = 'rendezvous';
 protected $guarded = ['id','updated_at','	created_at'];
 
+// Relation 
 public function client()
 {
     return $this->belongsTo(Client::class); 
@@ -50,5 +53,44 @@ public function ligne_rendezvous()
 
 
 }
+
+//les méthodes métier
+// ajouterLigneRendezvous( service_id:int)
+ public function ajouterLigneRendezvous(array $lignes): void
+    {
+          foreach ($lignes as $ligne) {
+            $service = Service::find($ligne['service_id']);
+            if (!$service) {
+                continue; // Ignorer les lignes avec des services non trouvés
+            }
+
+
+            LigneRendezvous::create([
+                'rendezvous_id' => $this->id,
+                'service_id' => $service->id,
+            ]);
+       
+    }
+    }
+
+
+    // calculerTarifTotal(lignes:array) : float
+    public function calculerTarifTotal(array $lignes): float
+    {
+        $total = 0;
+        foreach ($lignes as $ligne) {
+            $service = Service::find($ligne['service_id']);
+            if (!$service) {
+                continue; // Ignorer les lignes avec des services non trouvés
+            }
+
+            $total += $service->tarif;
+        }
+           $this->tarifTotal = $total;
+        $this->save();
+    
+        return $total;
+    }
+
 
 }

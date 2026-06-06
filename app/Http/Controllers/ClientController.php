@@ -80,21 +80,13 @@ public function register(Request $request)
 $token = $user->createToken('auth_token')->plainTextToken;
         return response()->json([
             'message' => 'Connexion réussie',
-            'data'    => $user->load('client'),
+            'user'    => $user->load('client'),
             'token'   => $token,
         ], 200);
     }
 
 
-public function logout(Request $request)
-     {
-    // Révoquer tous les tokens d'authentification de l'utilisateur
-    $request->user()->tokens()->delete();
 
-    return response()->json(['message' => 'Déconnexion réussie'], 200);
-
-
-      }
       public function index()
       {
           $clients = User::with('client')->get();

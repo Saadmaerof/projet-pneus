@@ -27,6 +27,7 @@ return new class extends Migration
                   ->onDelete('set null');
             $table->date('date');
             $table->time('heure');
+            $table->float('tarifTotal')->default(0);
             $table->string('statut')->default('en attente'); // en attente, validé, annulé, terminé
             $table->timestamps();
         });

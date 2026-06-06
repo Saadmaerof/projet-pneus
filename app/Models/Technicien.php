@@ -45,6 +45,8 @@ class Technicien extends Model
                     ->withTimestamps();
     }
 
+    
+
 
 
 

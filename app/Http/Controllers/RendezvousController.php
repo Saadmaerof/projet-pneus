@@ -18,8 +18,8 @@ class RendezvousController extends Controller
             'commande_id' => 'nullable|exists:commandes,id',
            'lignes' => 'required|array|min:1|max:3',
               'lignes.*.service_id' => 'required|exists:services,id',
-              'date' => 'required|date',
-              'heure' => 'required|date_format:H:i',
+            'date' => 'required|date',
+            'heure' => 'required|date_format:H:i',
         ]);
         $user = $request->user();
         $client = $user->client;
@@ -33,6 +33,8 @@ class RendezvousController extends Controller
             'heure' => $request->heure,
 
         ]);
+        $rendezvous->ajouterLigneRendezvous($request->lignes);
+
 
         return response()->json(['message' => 'Rendezvous cree avec succes'], 201);
 

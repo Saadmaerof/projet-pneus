@@ -27,7 +27,7 @@ $imagePath = $request->file('image')->store('categorie_vehicules', 'public');
 }
 
 //afficher tous les vehicules
-public function afficher(){
+public function index(){
 
 $categories = Vehicule::all();
 
@@ -36,7 +36,7 @@ return response()->json($categories);
 }
 
 //afficher un seul vehicule
-public function affiche($id){
+public function show($id){
 
 $categorie = Vehicule::find($id);
 

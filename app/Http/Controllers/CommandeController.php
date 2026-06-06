@@ -52,4 +52,5 @@ public function updatestatut(Request $request) {
             'data'        => $commande,],201);
 }
 
+
 }

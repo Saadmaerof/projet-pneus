@@ -17,7 +17,7 @@ return new class extends Migration
                   ->constrained('clients')
                   ->onDelete('cascade');
           $table->datetime('date_commande')->useCurrent();
-            $table->string('statut')->default('en attente'); // en attente, confirmée, livrée, annulée
+            $table->string('statut')->default('en attente'); // en attente, validee , livrée, annulée
             $table->float('montant_total')->default(0);
             $table->timestamps();
         });

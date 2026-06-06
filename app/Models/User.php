@@ -62,12 +62,12 @@ class User extends Authenticatable
 
     public function technicien()
     {
-        return $this->hasOne(Technicien::class);
+        return $this->hasOne(Technicien::class, 'users_id');
     }
 
     public function admin()
     {
-        return $this->hasOne(Admin::class);
+        return $this->hasOne(Admin::class, 'users_id');
     }
 
 

@@ -24,7 +24,7 @@ class GetbyTrierPneuRequest extends FormRequest
     {
         return [
              'vehicule_id'     => 'nullable|integer|exists:vehicules,id',
-        'saison'          => 'nullable|string|in:été,hiver,toutes saisons',
+        'saison'          => 'nullable|string|in:Été,Hiver,4 saisons',
         'marque'          => 'nullable|string|max:255',
         'largeur'         => 'nullable|integer',
         'hauteur'         => 'nullable|integer',
