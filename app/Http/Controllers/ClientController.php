@@ -87,10 +87,89 @@ $token = $user->createToken('auth_token')->plainTextToken;
 
 
 
-      public function index()
+    // Méthode pour récupérer la liste des clients avec filtrage
+      public function index(Request $request)
       {
-          $clients = User::with('client')->get();
-          return response()->json($clients);
+          $validated = $request->validate([
+              'nom' => 'nullable|string|max:255',
+              'statut' => 'nullable|string|in:actif,bloque,bloqué',
+          ]);
+
+          $statut = $validated['statut'] ?? null;
+          if ($statut === 'bloqué') {
+              $statut = 'bloque';
+          }
+
+          $query = User::with('client')->whereHas('client');
+
+          if (!empty($validated['nom'])) {
+              $search = '%' . trim($validated['nom']) . '%';
+              $query->where(function ($q) use ($search) {
+                  $q->where('nom', 'like', $search)
+                    ->orWhere('prenom', 'like', $search);
+              });
+          }
+
+          if (!empty($statut)) {
+              $query->whereHas('client', function ($q) use ($statut) {
+                  $q->where('statut', $statut);
+              });
+          }
+
+          $clients = $query->get();
+
+          return response()->json([
+              'message' => 'Clients récupérés avec succès',
+              'data' => $clients,
+          ], 200);
       }
+
+
+// Méthode pour changer le statut d'un client (actif/bloqué)
+      public function changerStatut(Request $request, $id)
+      {
+          $validated = $request->validate([
+              'statut' => 'required|string|in:actif,bloque,bloqué',
+          ]);
+
+          $statut = $validated['statut'];
+          if ($statut === 'bloqué') {
+              $statut = 'bloque';
+          }
+
+          $client = Client::find($id);
+          if (!$client) {
+              return response()->json(['message' => 'Client non trouvé.'], 404);
+          }
+
+          $client->statut = $statut;
+          $client->save();
+
+          return response()->json([
+              'message' => 'Statut du client mis à jour avec succès',
+              'data' => $client,
+          ], 200);
+      }
+     
+public function stats()
+{
+    $totalClients = Client::count();
+    $clientsActifs = Client::where('statut', 'actif')->count();
+
+    return response()->json([
+        'message' => 'Statistiques des clients',
+        'data' => [
+            'total' => $totalClients,
+            'actifs' => $clientsActifs,
+            'bloques' => $totalClients - $clientsActifs,
+        ],
+    ], 200);
+}
+
+
+
+
+
+
 
 }

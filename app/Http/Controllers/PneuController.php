@@ -6,13 +6,13 @@ use Illuminate\Http\Request;
 use App\Models\Pneu;
 use App\Models\Vehicule;
 use App\Http\Requests\GetbyTrierPneuRequest;
+use Illuminate\Support\Facades\Storage;
 class PneuController extends Controller
 {
 
 
 
 // function index qui peux afficher tout les pneus ou par vehicule_id.
-
     public function index(Request $request)
     {
         $validated = $request->validate([
@@ -32,6 +32,7 @@ class PneuController extends Controller
             'data' => $pneus,
         ], 200);
     }
+    
 
 
 
@@ -60,7 +61,7 @@ public function store(Request $request)
     // Gestion de l'image
     if ($request->hasFile('image')) {
         $imagePath = $request->file('image')->store('pneus', 'public');
-        $validated['image'] = 'storage/app/public/' . $imagePath;
+        $validated['image'] = $imagePath;
     }
 
    
@@ -84,6 +85,111 @@ public function getByVehicule($id)
     return response()->json([
         'message' => 'Pneus récupérés avec succès',
         'data'    => $pneus,
+    ], 200);
+}
+
+// afficher un pneu unique
+public function show($id)
+{
+    $pneu = Pneu::with('vehicule')->find($id);
+   
+
+    if (!$pneu) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Pneu non trouvé.'
+        ], 404);
+    }
+
+    // Calculer le nombre total de pneus vendus (somme des quantités dans ligne_commandes)
+    $nombreVentes = $pneu->ligne_commandes()->sum('quantite');
+
+    return response()->json([
+        'message' => 'Pneu récupéré avec succès',
+        'data'    => [
+            'pneu' => $pneu,
+            'nombre_ventes' => (int) $nombreVentes,
+        ],
+    ], 200);
+}
+
+// mettre à jour un pneu
+public function update(Request $request, $id)
+{
+    $pneu = Pneu::find($id);
+
+    if (!$pneu) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Pneu non trouvé.'
+        ], 404);
+    }
+
+    $validated = $request->validate([
+        'marque'           => 'sometimes|string|max:255',
+        'modele'           => 'sometimes|string|max:255',
+        'largeur'          => 'sometimes|integer|min:10',
+        'hauteur'          => 'sometimes|integer|min:10',
+        'diametre_pouces'  => 'sometimes|integer|min:1',
+        'saison'           => 'sometimes|string|in:Été,Hiver,4 Saisons,All Season',
+        'indice_charge'    => 'sometimes|integer|min:0',
+        'indice_vitesse'   => 'sometimes|string|max:5',
+        'prix'             => 'sometimes|numeric|min:0',
+        'description'      => 'sometimes|string',
+        'quantite'         => 'nullable|integer|min:0',
+        'image'            => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+        'vehicule_id'      => 'sometimes|exists:vehicules,id',
+    ]);
+
+    // Gestion de l'image si fournie
+    if ($request->hasFile('image')) {
+        // Supprimer l'ancienne image si elle existe
+        $oldPath = $pneu->image;
+        if ($oldPath) {
+            if (str_starts_with($oldPath, 'storage/app/public/')) {
+                $oldPath = substr($oldPath, strlen('storage/app/public/'));
+            }
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        $imagePath = $request->file('image')->store('pneus', 'public');
+        $validated['image'] = $imagePath;
+    }
+
+    $pneu->update($validated);
+
+    return response()->json([
+        'message' => 'Pneu mis à jour avec succès',
+        'data'    => $pneu->fresh(),
+    ], 200);
+}
+
+// supprimer un pneu
+public function destroy($id)
+{
+    $pneu = Pneu::find($id);
+
+    if (!$pneu) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Pneu non trouvé.'
+        ], 404);
+    }
+
+    // Supprimer l'image si elle existe
+    if ($pneu->image) {
+        $imagePath = $pneu->image;
+        if (str_starts_with($imagePath, 'storage/app/public/')) {
+            $imagePath = substr($imagePath, strlen('storage/app/public/'));
+        }
+        Storage::disk('public')->delete($imagePath);
+    }
+
+    $pneu->delete();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Pneu supprimé avec succès.'
     ], 200);
 }
 

@@ -18,6 +18,7 @@ return new class extends Migration
           $table->foreignId('technicien_id')->nullable()->constrained('techniciens')->onDelete('set null');//l'adminin affecte un technicien pour réaliser le service lors de la validation du rendezvous
             $table->integer('duree')->nullable(); // en minutes //le technicien qui a fait le service saisie la durée réelle du service
             $table->float('tarif')->nullable(); // le technicien qui a fait le service saisie le tarif réel du service
+            $table->string('statut')->default('en attente'); // en attente, en cours, terminé, annulé
             $table->timestamps();
 
         });

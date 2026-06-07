@@ -78,7 +78,7 @@ class Pneuseeder extends Seeder
                 'quantite'        => rand(0, 100),
 
                 // image exemple
-                'image'           => 'storage/app/public/pneus/pneu_' . rand(1, 10) . '.jpg',
+                'image'           => 'pneus/pneu_' . rand(1, 10) . '.jpg',
 
                 // IDs des catégories véhicules (1 → 6)
                 'vehicule_id'     => rand(1, 6),

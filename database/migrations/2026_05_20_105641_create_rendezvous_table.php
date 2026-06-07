@@ -28,7 +28,7 @@ return new class extends Migration
             $table->date('date');
             $table->time('heure');
             $table->float('tarifTotal')->default(0);
-            $table->string('statut')->default('en attente'); // en attente, validé, annulé, terminé
+            $table->string('statut')->default('en attente'); // en attente, validé, en cours, terminé, annulé
             $table->timestamps();
         });
     }
@@ -38,6 +38,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('rendezvouses');
+        Schema::dropIfExists('rendezvous');
     }
 };

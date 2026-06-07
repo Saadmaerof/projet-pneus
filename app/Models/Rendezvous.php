@@ -20,8 +20,7 @@ public function client()
 }
 public function commande()
 {
-    return $this->hasOne(Commande::class);
-
+    return $this->belongsTo(Commande::class, 'commande_id');
 }
 
 public function techniciens()
@@ -48,13 +47,38 @@ public function vehicule()
 public function ligne_rendezvous()
 {
     return $this->hasMany(LigneRendezvous::class);
-
-
-
-
 }
 
+
+
 //les méthodes métier
+public function actualiserStatut(): self
+{
+    $statuts = $this->ligne_rendezvous()->pluck('statut')->map(function ($value) {
+        return mb_strtolower($value);
+    })->filter()->unique()->values()->all();
+
+    if (empty($statuts)) {
+        return $this;
+    }
+
+    if (count($statuts) === 1 && $statuts[0] === 'terminé') {
+        $this->statut = 'terminé';
+    } elseif (in_array('en attente', $statuts, true)) {
+        $this->statut = 'en attente';
+    } elseif (in_array('en cours', $statuts, true)) {
+        $this->statut = 'en cours';
+    } elseif (count($statuts) === 1 && $statuts[0] === 'validé') {
+        $this->statut = 'validé';
+    } elseif (in_array('annulé', $statuts, true)) {
+        $this->statut = 'annulé';
+    }
+
+    $this->save();
+    return $this;
+}
+
+
 // ajouterLigneRendezvous( service_id:int)
  public function ajouterLigneRendezvous(array $lignes): void
     {

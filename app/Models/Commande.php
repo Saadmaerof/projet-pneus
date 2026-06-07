@@ -19,9 +19,9 @@ class Commande extends Model
         return $this->belongsTo(Client::class, 'client_id');
     }
 
-    public function rendezVous()
+    public function rendezvous()
     {
-      //return $this->belongsTo(RendezVous::class, 'rendez_vous_id');
+        return $this->hasOne(Rendezvous::class, 'commande_id');
     }
 
     public function lignesCommande()
