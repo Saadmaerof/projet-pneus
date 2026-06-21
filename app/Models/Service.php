@@ -29,6 +29,7 @@ class Service extends Model
         return $this->belongsToMany(Technicien::class, 'service__technicien', 'service_id', 'technicien_id')
                     ->withTimestamps();
     }
+    
     public function rendezvous()
     {
         return $this->belongsToMany(Rendezvous::class, 'ligne_rendezvous', 'service_id', 'rendezvous_id')

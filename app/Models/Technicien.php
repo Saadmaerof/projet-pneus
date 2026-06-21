@@ -45,11 +45,33 @@ class Technicien extends Model
                     ->withTimestamps();
     }
 
+    //les methodes
+
+   public function ajouterService_Technicien(array $lignes): void
+{
+    foreach ($lignes as $ligne) {
+        if (!isset($ligne['service_id'])) {
+            continue;
+        }
+
+        $service = Service::find($ligne['service_id']);
+        if (!$service) {
+            continue; // Ignore si l'ID du service n'existe pas en BDD
+        }
+
+        Service_Technicien::create([
+            'technicien_id' => $this->id,
+            'service_id'    => $service->id,
+        ]);
+    }
+}
+    
+}
     
 
 
 
 
 
-}
+
 

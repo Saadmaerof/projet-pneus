@@ -13,7 +13,7 @@ class PneuController extends Controller
 
 
 // function index qui peux afficher tout les pneus ou par vehicule_id.
-    public function index(Request $request)
+   /* public function index(Request $request)
     {
         $validated = $request->validate([
             'vehicule_id' => 'nullable|exists:vehicules,id',
@@ -31,9 +31,48 @@ class PneuController extends Controller
             'message' => 'Pneus récupérés avec succès',
             'data' => $pneus,
         ], 200);
-    }
-    
+    }*/
+       public function index(Request $request)
+{
+    $validated = $request->validate([
+        'vehicule_id' => 'nullable|exists:vehicules,id',
+    ]);
 
+    $query = Pneu::query();
+
+    if (!empty($validated['vehicule_id'])) {
+        $query->where('vehicule_id', $validated['vehicule_id']);
+    }
+
+    $pneus = $query->get();
+
+    $customData = $pneus->map(function ($pneu) {
+        return [
+            'id'             => $pneu->id,
+            'marque'         => $pneu->marque,        
+            'modele'         => $pneu->modele,        
+            'dimensions'     => $pneu->largeur . '/' . $pneu->hauteur . ' R' . $pneu->diametre_pouces, 
+            'largeur'        => $pneu->largeur,          // <-- AJOUTÉ : Pour éviter les split en front
+            'hauteur'        => $pneu->hauteur,          // <-- AJOUTÉ : Pour éviter les split en front
+            'diametre_pouces'=> $pneu->diametre_pouces,  // <-- AJOUTÉ : Pour éviter les split en front
+            'saison'         => $pneu->saison,        
+            'charge_vitesse' => $pneu->indice_charge . '/' . $pneu->indice_vitesse, 
+            'indice_charge'  => $pneu->indice_charge,   // <-- AJOUTÉ : Pour le formulaire front
+            'indice_vitesse' => $pneu->indice_vitesse,  // <-- AJOUTÉ : Pour le formulaire front
+            'prix'           => $pneu->prix,          
+            'quantite'       => $pneu->quantite,      
+            'categorie'      => $pneu->vehicule->vehicule, 
+            'categorie_id'   => $pneu->vehicule->id,     // <-- AJOUTÉ : Pour lier le select HTML
+            'description'    => $pneu->description,      // <-- AJOUTÉ : Pour pré-remplir la description
+            'image'          => $pneu->image ? asset('storage/' . $pneu->image) : null // <-- AJOUTÉ : L'image est maintenant là !
+        ];
+    });
+
+    return response()->json([
+        'message' => 'Pneus récupérés avec succès',
+        'data' => $customData,
+    ], 200);
+}
 
 
 
@@ -53,7 +92,7 @@ public function store(Request $request)
     'prix'             => 'required|numeric|min:0',
     'description'      => 'required|string',
     'quantite'         => 'nullable|integer|min:0', // Optionnel car il y a un default(0) en BDD
-    'image'            => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048', // Validation de fichier image (max 2Mo)
+    'image'            => 'nullable|image|mimes:jpeg,jfif,png,jpg,webp,Avif|max:2048', // Validation de fichier image (max 2Mo)
     'vehicule_id'      => 'required|exists:vehicules,id', // Vérifie que le véhicule existe bien dans la table 'vehicules'
        
     ]);
@@ -88,8 +127,21 @@ public function getByVehicule($id)
     ], 200);
 }
 
+////obtenir les pneus d'un vehicule plus vendu
+public function getByVehiculeRecommande($id)
+{
+   
+    $vehicule = Vehicule::findOrFail($id);
+
+    $pneus =$vehicule->pneus ->take(4)->get();
+
+    return response()->json([
+        'message' => 'Pneus récupérés avec succès',
+        'data'    => $pneus,
+    ], 200);
+}
 // afficher un pneu unique
-public function show($id)
+/*public function show($id)
 {
     $pneu = Pneu::with('vehicule')->find($id);
    
@@ -111,9 +163,51 @@ public function show($id)
             'nombre_ventes' => (int) $nombreVentes,
         ],
     ], 200);
+}*/
+
+public function show($id)
+{
+    // On récupère le pneu avec sa relation véhicule
+    $pneu = Pneu::with('vehicule')->find($id);
+
+    if (!$pneu) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Pneu non trouvé.'
+        ], 404);
+    }
+
+    $nombreVentes = $pneu->ligne_commandes()->sum('quantite') ?? 0;
+
+    // Transformation pour correspondre à la fiche technique de la maquette
+    $customData = [
+        'id'               => $pneu->id, 
+        'marque'           => $pneu->marque,                            // <-- AJOUTÉ : Pour ton formulaire de modification
+        'modele'           => $pneu->modele,                            // <-- AJOUTÉ : Pour ton formulaire de modification
+        'titre'            => trim($pneu->marque . ' · ' . $pneu->modele), // Ex: Goodyear · Vector 4Seasons
+        'saison'           => $pneu->saison,                            // Ex: Toutes saisons
+        'categorie'        => $pneu->vehicule->vehicule,                // Ex: SUV / 4x4
+        'categorie_id'     => $pneu->vehicule->id, 
+        'dimensions'       => $pneu->largeur . '/' . $pneu->hauteur . ' R' . $pneu->diametre_pouces, // Ex: 185/60 R15
+        'largeur'          => $pneu->largeur,                           // <-- AJOUTÉ : Plus besoin de découper la chaîne en front
+        'hauteur'          => $pneu->hauteur,                           // <-- AJOUTÉ 
+        'diametre_pouces'  => $pneu->diametre_pouces,                  // <-- AJOUTÉ 
+        'prix'             => $pneu->prix,                              // Ex: 680
+        'indice_charge'    => $pneu->indice_charge,                     // Ex: 88
+        'indice_vitesse'   => $pneu->indice_vitesse,                    // Ex: V
+        'quantite_stock'   => $pneu->quantite,                          // Ex: 20
+        'nombre_ventes'    => $nombreVentes,                            // Ex: 27
+        'description'      => $pneu->description,                       // Ex: Homologué été et hiver.
+        'image'            => $pneu->image ? asset('storage/' . $pneu->image) : null
+    ];
+
+    return response()->json([
+        'message' => 'Pneu récupéré avec succès',
+        'data' => $customData,
+    ], 200);
 }
 
-// mettre à jour un pneu
+//met a jour un pneu
 public function update(Request $request, $id)
 {
     $pneu = Pneu::find($id);
@@ -137,7 +231,7 @@ public function update(Request $request, $id)
         'prix'             => 'sometimes|numeric|min:0',
         'description'      => 'sometimes|string',
         'quantite'         => 'nullable|integer|min:0',
-        'image'            => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+        'image'            => 'nullable|image|mimes:jpeg,png,jpg,webp,Avif|max:2048',
         'vehicule_id'      => 'sometimes|exists:vehicules,id',
     ]);
 

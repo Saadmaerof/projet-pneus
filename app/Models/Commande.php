@@ -81,4 +81,18 @@ public function pneus()
     }
     
 }
+// mettre à jour le stock des pneus après une commande
+public function freshstock(array $lignes): void
+    {
+        foreach ($lignes as $ligne) {
+            $pneu = Pneu::find($ligne['pneu_id']);
+            if (!$pneu) {
+                continue; // Ignorer les lignes avec des pneus non trouvés
+            }
+
+            $pneu->quantite -= $ligne['quantite'];
+            $pneu->save();
+        }
+    }   
+
 }

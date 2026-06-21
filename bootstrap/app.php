@@ -3,7 +3,8 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-
+use App\Http\Middleware\isAdmin;
+use App\Http\Middleware\isTechnicien;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
@@ -15,10 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
         'api/*',
     ]);
 })->withMiddleware(function (Middleware $middleware) {
-    $middleware->statefulApi();
-})->withMiddleware(function (Middleware $middleware): void {
-        //
-    })
-    ->withExceptions(function (Exceptions $exceptions): void {
+     $middleware->alias([
+       'isAdmin'=>isAdmin::class,
+       'isTechnicien'=>isTechnicien::class
+       ]) ;
+})->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();

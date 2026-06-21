@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('techniciens', function (Blueprint $table) {
               $table->id();
             $table->boolean('disponibilite')->default(true);
+             $table->string('statut')->default('actif');
             $table->foreignId('users_id')
                   ->constrained('users')
                   ->onDelete('cascade');

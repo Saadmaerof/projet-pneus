@@ -52,6 +52,7 @@ public function ligne_rendezvous()
 
 
 //les méthodes métier
+
 public function actualiserStatut(): self
 {
     $statuts = $this->ligne_rendezvous()->pluck('statut')->map(function ($value) {
@@ -64,6 +65,7 @@ public function actualiserStatut(): self
 
     if (count($statuts) === 1 && $statuts[0] === 'terminé') {
         $this->statut = 'terminé';
+        $this->calculerTarifTotal();
     } elseif (in_array('en attente', $statuts, true)) {
         $this->statut = 'en attente';
     } elseif (in_array('en cours', $statuts, true)) {
@@ -99,7 +101,7 @@ public function actualiserStatut(): self
 
 
     // calculerTarifTotal(lignes:array) : float
-    public function calculerTarifTotal(array $lignes): float
+   /* public function calculerTarifTotal(array $lignes): float
     {
         $total = 0;
         foreach ($lignes as $ligne) {
@@ -114,7 +116,21 @@ public function actualiserStatut(): self
         $this->save();
     
         return $total;
-    }
+    }*/
+
+
+    public function calculerTarifTotal()
+{
+    // Eager-load the service relationship on each ligne
+    $total = $this->ligne_rendezvous()
+                  ->get()
+                  ->sum(fn($ligne) => $ligne->tarif ?? 0);
+
+    $this->tarifTotal = $total;
+    $this->save();
+
+    
+}
 
 
 }

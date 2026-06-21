@@ -49,41 +49,39 @@ class AdminController extends Controller
 
 
     // Méthode de connexion pour les technicien
-    public function registerTechnicien(Request $request)
-    {
-        $request->validate([
-            'nom'         => 'required|string|max:255',
-            'prenom'      => 'required|string|max:255',
-            'email'       => 'required|email|unique:users,email',
-            'password'=> 'required|string|min:6|confirmed', // password_confirmation requis
-        ]);
-         // Créer l'utilisateur
-        $user = User::create([
-            'nom'          => $request->nom,
-            'prenom'       => $request->prenom,
-            'email'        => $request->email,
-            'password' => Hash::make($request->password), //sécuriser le mot de passe
-            'role'         => 'Technicien',
-        ]);
+ public function ajouterTechnicien(Request $request)
+{
+    $request->validate([
+        'nom'                 => 'required|string|max:255',
+        'prenom'              => 'required|string|max:255',
+        'email'               => 'required|email|unique:users,email',
+        'password'            => 'required|string|min:6|confirmed', 
+        'lignes'              => 'required|array|min:1',
+        'lignes.*.service_id' => 'required|exists:services,id',
+    ]);
 
-            $technicien = Technicien::create([
-            'users_id' => $user->id,
+    $user = User::create([
+        'nom'      => $request->nom,
+        'prenom'   => $request->prenom,
+        'email'    => $request->email,
+        'password' => Hash::make($request->password), 
+        'role'     => 'Technicien',
+    ]);
 
-        ]);
-       
+    $technicien = Technicien::create([
+        'users_id'      => $user->id,
+        'statut'        => 'actif', 
+        'disponibilite' => true,
+    ]);
 
-        // Générer un token d'authentification pour le client
-         $token = $user->createToken('auth_token')->plainTextToken;
+    $technicien->ajouterService_Technicien($request->lignes);
 
-         // Retourner la réponse avec les données du client et le token
-        return response()->json([
-            'message' => 'Compte Technicien créé avec succès',
-            'data'    => $user,
-            'token'   => $token,
-        ], 201);
-    }
-
-
+    return response()->json([
+        'message'        => 'Compte Technicien créé avec succès',
+        'data'           => $user,
+        'num_technicien' => 'TECH-' . str_pad($technicien->id, 3, '0', STR_PAD_LEFT), 
+    ], 201);
+}
 
 
 

@@ -19,4 +19,11 @@ class Client extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+public function commandes()
+    {
+        // Ajuste 'Commande::class' selon le nom exact de ton modèle de commande
+        return $this->hasMany(Commande::class); 
+    }
+
 }

@@ -88,7 +88,7 @@ $token = $user->createToken('auth_token')->plainTextToken;
 
 
     // Méthode pour récupérer la liste des clients avec filtrage
-      public function index(Request $request)
+      /*public function index(Request $request)
       {
           $validated = $request->validate([
               'nom' => 'nullable|string|max:255',
@@ -122,34 +122,79 @@ $token = $user->createToken('auth_token')->plainTextToken;
               'message' => 'Clients récupérés avec succès',
               'data' => $clients,
           ], 200);
-      }
+      }*/
+          public function index(Request $request)
+{
+    $validated = $request->validate([
+        'nom' => 'nullable|string|max:255',
+        'statut' => 'nullable|string|in:actif,bloque,bloqué',
+    ]);
+
+    $statut = $validated['statut'] ?? null;
+    if ($statut === 'bloqué') {
+        $statut = 'bloque';
+    }
+
+    $query = User::with('client')->whereHas('client');
+
+    if (!empty($validated['nom'])) {
+        $search = '%' . trim($validated['nom']) . '%';
+        $query->where(function ($q) use ($search) {
+            $q->where('nom', 'like', $search)
+              ->orWhere('prenom', 'like', $search);
+        });
+    }
+
+    if (!empty($statut)) {
+        $query->whereHas('client', function ($q) use ($statut) {
+            $q->where('statut', $statut);
+        });
+    }
+
+    $clients = $query->get();
+
+    // Transformation pour ne garder que les champs visibles sur la maquette
+    $customData = $clients->map(function ($user) {
+        return [
+            'client_id'  => $user->client->id,
+            'id_user'     => $user->id,
+             'num_client'   => 'CLIENT-' . str_pad($user->client->id, 3, '0', STR_PAD_LEFT), // Ex: CLIENT-001
+            'nom_complet' => trim(ucwords($user->prenom . ' ' . $user->nom)), // Ex: Karim Benali
+            'email'       => $user->email, // Ex: k.benali@mail.ma
+            'statut'      => $user->client->statut , // Ex: bloqué, actif
+        ];
+    });
+
+    return response()->json([
+        'message' => 'Clients récupérés avec succès',
+        'data' => $customData,
+    ], 200);
+}
 
 
 // Méthode pour changer le statut d'un client (actif/bloqué)
-      public function changerStatut(Request $request, $id)
-      {
-          $validated = $request->validate([
-              'statut' => 'required|string|in:actif,bloque,bloqué',
-          ]);
+    public function changerStatut(Request $request, $Id)
+{
+    $validated = $request->validate([
+        'statut' => 'required|string|in:actif,bloqué',
+    ]);
 
-          $statut = $validated['statut'];
-          if ($statut === 'bloqué') {
-              $statut = 'bloque';
-          }
+    $statut = $validated['statut'];
 
-          $client = Client::find($id);
-          if (!$client) {
-              return response()->json(['message' => 'Client non trouvé.'], 404);
-          }
+    // Recherche via l'ID de l'utilisateur pour correspondre au tableau mappé
+    $client = Client::find($Id);
+    if (!$client) {
+        return response()->json(['message' => 'Client non trouvé.'], 404);
+    }
 
-          $client->statut = $statut;
-          $client->save();
+    $client->statut = $statut;
+    $client->save();
 
-          return response()->json([
-              'message' => 'Statut du client mis à jour avec succès',
-              'data' => $client,
-          ], 200);
-      }
+    return response()->json([
+        'message' => 'Statut du client mis à jour avec succès',
+        'data' => $client,
+    ], 200);
+}
      
 public function stats()
 {
@@ -161,7 +206,7 @@ public function stats()
         'data' => [
             'total' => $totalClients,
             'actifs' => $clientsActifs,
-            'bloques' => $totalClients - $clientsActifs,
+        
         ],
     ], 200);
 }

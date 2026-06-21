@@ -17,10 +17,14 @@ class LigneRendezvousController extends Controller
         if (!$ligne) {
             return response()->json(['message' => 'Ligne de rendez-vous non trouvée.'], 404);
         }
+        elseif($ligne->statut=='annulé' || $ligne->statut=='terminé' )
+            {   
+               return response()->json(['message' => 'vous pouvez pas changer ce statut'], 404); 
+            }
 
         $validated = $request->validate([
             'technicien_id' => 'nullable|exists:techniciens,id',
-            'statut' => 'required|string|in:validé,annulé,valide,annule',
+            'statut' => 'required|string|in:validé,annulé',
         ]);
 
         $statut = $validated['statut'];
@@ -54,6 +58,8 @@ class LigneRendezvousController extends Controller
 
     public function changerStatutLigne(Request $request, $id)
     {
+       
+
         $user = $request->user();
         if (!$user || !$user->technicien) {
             return response()->json(['message' => 'Technicien non authentifié.'], 401);
@@ -72,6 +78,14 @@ class LigneRendezvousController extends Controller
         if ($status === 'validé') {
             $ligne->statut = 'en cours';
         } elseif ($status === 'en cours') {
+
+             $validated = $request->validate([
+            'duree' => 'required|integer|min:1',
+            'tarif' => 'required|numeric|min:0']);
+
+                $ligne->duree = $validated['duree'];
+                $ligne->tarif = $validated['tarif'];
+
             $ligne->statut = 'terminé';
         } else {
             return response()->json([
@@ -84,7 +98,7 @@ class LigneRendezvousController extends Controller
 
         return response()->json([
             'message' => 'Statut de la ligne de rendez-vous mis à jour.',
-            'data' => $ligne,
+            
         ], 200);
     }
 }

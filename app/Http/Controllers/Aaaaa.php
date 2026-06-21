@@ -1,4 +1,0 @@
-
-<?php
-
-//salam aba hamza 
